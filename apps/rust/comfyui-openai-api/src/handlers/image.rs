@@ -118,7 +118,7 @@ pub async fn image_generations_handler(
 
     // 选择后端
     let backend_name = params.get("backend").map(|s| s.as_str());
-    let backend = state.get_backend(backend_name)?;
+    let backend = state.get_backend(backend_name).await?;
     info!("Selected backend '{}' at {}:{}", backend.name, backend.host, backend.port);
 
     // ---------- 新增：图片生成前的模型清理 ----------
