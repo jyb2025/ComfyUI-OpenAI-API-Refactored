@@ -79,16 +79,12 @@ impl BackendPool {
         });
     }
 
-    pub fn get_by_name(&self, name: &str) -> Option<&Arc<BackendState>> {
-        self.backends.iter().find(|b| b.config.name == name)
-    }
-
-    pub fn select_backend(&self) -> Option<&Arc<BackendState>> {
+    pub async fn select_backend(&self) -> Option<&Arc<BackendState>> {
         let healthy: Vec<&Arc<BackendState>> = self.backends.iter().filter(|b| b.is_healthy()).collect();
         if healthy.is_empty() { return None; }
         match self.strategy {
             LbStrategy::RoundRobin => {
-                let mut idx = self.next_index.blocking_write();
+                let mut idx = self.next_index.write().await;
                 let chosen = healthy[*idx % healthy.len()];
                 *idx = (*idx + 1) % healthy.len();
                 Some(chosen)
@@ -101,6 +97,11 @@ impl BackendPool {
                 Some(healthy[idx])
             }
         }
+    }
+
+    /// 按名称查找后端
+    pub fn get_by_name(&self, name: &str) -> Option<&Arc<BackendState>> {
+        self.backends.iter().find(|b| b.config.name == name)
     }
 
     /// 返回所有后端名称及其健康状态
