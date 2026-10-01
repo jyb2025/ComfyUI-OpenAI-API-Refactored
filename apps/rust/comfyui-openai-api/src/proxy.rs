@@ -37,14 +37,14 @@ pub struct ProxyState {
 }
 
 impl ProxyState {
-    pub fn get_backend(&self, name: Option<&str>) -> Result<&BackendConfig, crate::error::ProxyError> {
+    pub async fn get_backend(&self, name: Option<&str>) -> Result<&BackendConfig, crate::error::ProxyError> {
         if let Some(name) = name {
             self.backends.get_by_name(name)
                 .ok_or_else(|| crate::error::ProxyError::Json(format!("Backend '{}' not found", name)))
                 .map(|b| &b.config)
         } else {
             // 使用负载均衡
-            self.backends.select_backend()
+            self.backends.select_backend().await 
                 .map(|b| &b.config)
                 .ok_or_else(|| crate::error::ProxyError::Upstream("No healthy backend available".into()))
         }
