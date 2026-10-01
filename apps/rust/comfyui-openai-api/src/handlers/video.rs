@@ -76,7 +76,7 @@ pub async fn video_generations_handler(
     }
 
     let backend_name = params.get("backend").map(|s| s.as_str());
-    let backend = state.get_backend(backend_name)?.clone();
+    let backend = state.get_backend(backend_name).await?.clone();
     let video_req: VideoGenerationRequest = serde_json::from_str(&raw_body)
         .map_err(|e| ProxyError::Json(format!("Invalid video request: {}", e)))?;
 
